@@ -1,0 +1,44 @@
+{% extends 'base_layout.html' %}
+{% block style %}
+  <style>
+  body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  }
+  main {
+  flex: 1 0 auto;
+  }
+  </style>
+{% endblock %}
+{% block content %}
+  </br>
+  <div class="container">
+    <form action="/" method="post" autocomplete="off">
+      {% csrf_token %}
+      
+      <div class="row">
+        <div class="input-field col s6">
+          <span class="red-text">{{ login_message }}</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <i class="material-icons prefix">account_circle</i>
+          <input required="" id="username" name=username type="text" class="validate">
+          <label for="username">Username</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s6">
+          <i class="material-icons prefix">lock</i>
+          <input required="" id="password" name="password" type="password" class="validate">
+          <label for="password">Password</label>
+        </div>
+      </div>
+      <button class="btn waves-effect waves-light cyan darken-4" type="submit" name="action">Login
+      <i class="material-icons right">send</i>
+      </button>
+    </form>
+  </div>
+{% endblock %}

@@ -2,28 +2,29 @@ from __future__ import unicode_literals
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.conf import settings
-from filebrowser.base import FileListing
-from django.core.files.storage import FileSystemStorage
 import xml.etree.ElementTree as ET
 from Nessus_Parser.models import Hosts
 from Nessus_Parser.models import Vulnerability
 from Nessus_Map import views as map_views
 import json
 import os
-from io import StringIO
 from zipfile import ZipFile
 from io import BytesIO
+from django.contrib.auth.decorators import login_required
+
 
 def check_json_exists(request, filename):
     if os.path.exists(settings.JSON_ROOT + '/' + filename):
         return True
     return False
 
+
 def load_json_dict(filename):
     with open(settings.JSON_ROOT + '/' + filename) as json_file:
         loaded_json = json.load(json_file)
         return loaded_json
 
+@login_required
 def load_json_file(request):
     if request.method == 'POST':
         print(request.POST)
@@ -56,9 +57,10 @@ def load_json_file(request):
     # return map_views.home_alert(request, 'abc')
     return redirect('home')
 
+@login_required
 def generate_html_report(request):
     if request.method == 'POST':
-        select_val = request.POST["reporttype"]
+        select_val = request.POST.get("reporttype", False)
         print(select_val)
         if select_val == "1":
             return generate_executive_report(request)
@@ -81,6 +83,7 @@ def do_parse_host(request):
     hosts = get_host_parse_json()
     return render(request, 'host_report.html', {'hosts' : hosts})
 
+
 def get_host_parse_json():
     hosts = dict()
     files = os.listdir(settings.MEDIA_ROOT)
@@ -88,6 +91,7 @@ def get_host_parse_json():
         path = os.path.join(settings.MEDIA_ROOT, file)
         hosts = do_parse_hosts(hosts, path, file)
     return hosts
+
 
 def do_parse_hosts(hosts, path, file):
     tree = ET.parse(path)
@@ -127,11 +131,11 @@ def do_parse_hosts(hosts, path, file):
     return hosts
 
 
-
 def download_json_file(json_data, filename):
     response = HttpResponse(json_data, content_type='application/json')
     response['Content-Disposition'] = 'attachment; filename="' + filename + '"'
     return response
+
 
 def save_json_file(json_data, filename):
     if not os.path.exists(settings.JSON_ROOT):
@@ -141,6 +145,7 @@ def save_json_file(json_data, filename):
     # os.system("nautilus \"" + settings.JSON_ROOT + "\"")
     print(settings.JSON_ROOT + "/" + filename + " saved ....")
 
+@login_required
 def generate_json_file(request):
     if request.method == 'POST':
         if "genjson" not in request.POST: return redirect('home')
@@ -207,6 +212,7 @@ def generate_json_file(request):
             if download == 1: return download_json_file(osDict, "osDict.json")
     return redirect('home')
 
+
 def generate_executive_json():
     vulns = parse_all_xml()
     vulndict = dict()
@@ -237,6 +243,7 @@ def generate_executive_json():
     ex_json['host_vuln_detail'] = host_vuln_detail
     return ex_json
 
+
 def generate_executive_report(request):
     ex_json = generate_executive_json()
     return render(request, 'generate_executive.html', {'vulns' : ex_json['vulndict'], 'vulnOrder' : ex_json['sorted_d'], "host_dict": sorted(ex_json['host_dict'].items(), key=lambda value: value[1], reverse=True), "host_vuln_detail" : ex_json['host_vuln_detail']})
@@ -246,9 +253,11 @@ def handle_uploaded_file(myfile):
         for chunk in myfile.chunks():
             destination.write(chunk)
 
+@login_required
 def upload_file(request):
     return redirect('home')
 
+@login_required
 def parse_XML(request):
     vulns = parse_all_xml()
     return render(request, 'parsed_XML.html', {'vulns' : vulns})
@@ -275,6 +284,7 @@ def parse_all_xml():
     #         file.write(sev+","+vulns[sev][vuln]['name']+","+ips+"\n")
     # file.close()
     return vulns
+
 
 def do_vuln_parsing(vulns, path, filename):
     tree = ET.parse(path)
@@ -341,6 +351,7 @@ def do_vuln_parsing(vulns, path, filename):
             
     return vulns
 
+@login_required
 def do_port_filter(request):
     services = parse_services()
     return render(request, 'port_filter.html', {'services':services})
@@ -369,10 +380,12 @@ def do_parse_services(services, path, filename):
                 services[service] = [ipaddr2]
     return services
 
+
 def do_parse_os(request):
     osDict = os_parser()
     return render(request, 'parse_os.html', {'osDict' : osDict})
-    
+
+
 def os_parser():
     osDict = dict()
     files = os.listdir(settings.MEDIA_ROOT)
@@ -380,6 +393,7 @@ def os_parser():
         path = os.path.join(settings.MEDIA_ROOT, file)
         osDict = do_os_parsing(osDict, path, file)
     return osDict
+
 
 def do_os_parsing(osDict, path, filename):
     tree = ET.parse(path)
@@ -405,6 +419,7 @@ def do_os_parsing(osDict, path, filename):
             osDict[ipaddr] = plugin_output
     
     return osDict
+
 
 def do_host_vuln_parsing(path, host_dict, host_vuln_detail):
     tree = ET.parse(path)
@@ -444,6 +459,3 @@ def do_host_vuln_parsing(path, host_dict, host_vuln_detail):
         host_dict[ipaddr] = int(host_vuln_detail[ipaddr]["Critical"]) + int(host_vuln_detail[ipaddr]["High"]) + int(host_vuln_detail[ipaddr]["Medium"]) + int(host_vuln_detail[ipaddr]["Low"]) + int(host_vuln_detail[ipaddr]["Info"])
         
     return host_dict, host_vuln_detail
-
-
-
