@@ -23,7 +23,7 @@ services:
     depends_on:
       - db
     volumes:
-      - staticfiles:/home/app/web/staticfiles
+      - static:/home/app/web/staticfiles
       - XML:/home/app/web/XML
   nginx:
     container_name: nginx
@@ -33,11 +33,11 @@ services:
       - 1337:80
     volumes:
       - ./nginx:/etc/nginx/conf.d
-      - staticfiles:/home/app/web/staticfiles/
+      - static:/home/app/web/staticfiles/
     depends_on:
       - web
 
 volumes:
   postgres-data:
-  staticfiles:
+  static:
   XML:
