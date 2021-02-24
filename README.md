@@ -9,6 +9,8 @@
 ### Requirements
 - Python3
 - Django
+- Docker
+- docker-compose
 
 ### Tested on
 - Ubuntu 18.04
