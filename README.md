@@ -25,6 +25,16 @@
 ### How it works
 <pre>Create XML directory in Nessus_Map home directory and place all .nessus files under XML directory and start server.</pre>
 
+### Setting up with Docker
+- Run the code
+```bash
+$ git clone https://github.com/yiannosch/Nessus_Map
+$ cd Nessus_Map
+$ docker-compose up
+```
+- Access web server on `http://127.0.0.1:1337`
+- Login using administrator user. Default credentials are included in `entrypoint.sh` file. (:warning:Don't forget to change the default password via django admin page)
+
 ### How to Setup
 - Clone this repo `https://github.com/Ebryx/Nessus_Map.git`
 - Change directory `cd Nessus_Map`
